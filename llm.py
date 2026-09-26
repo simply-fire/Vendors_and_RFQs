@@ -257,7 +257,10 @@ def _validate(result):
 
 def evaluate_with_llm(rfq, vendor_text):
     if not OPENROUTER_API_KEY:
-        raise LLMSchemaError("OPENROUTER_API_KEY is not set")
+        raise LLMSchemaError(
+            "OPENROUTER_API_KEY is not set. Add it to your .env file "
+            "(see .env.example) or export it before running the app."
+        )
 
     user_prompt = _build_user_prompt(rfq, vendor_text)
     messages = [

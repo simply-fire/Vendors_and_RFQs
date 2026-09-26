@@ -1,14 +1,15 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import logging
 import os
 
-from dotenv import load_dotenv
 from flask import Flask, jsonify, request, send_from_directory
 from werkzeug.exceptions import HTTPException
 
 from db import init_db, seed_rfqs
 from routes import bp as api_bp
-
-load_dotenv()
 
 logging.basicConfig(
     level=os.environ.get("LOG_LEVEL", "INFO"),
@@ -22,6 +23,12 @@ def create_app():
     init_db()
     seed_rfqs()
     app.register_blueprint(api_bp)
+
+    if not os.environ.get("OPENROUTER_API_KEY"):
+        logger.warning(
+            "OPENROUTER_API_KEY is not set — /api/evaluate will return 502 "
+            "until it is. Add it to .env (see .env.example) or export it."
+        )
 
     @app.get("/")
     def index():
