@@ -1,12 +1,20 @@
+import logging
 import os
 
 from dotenv import load_dotenv
-from flask import Flask, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory
+from werkzeug.exceptions import HTTPException
 
 from db import init_db, seed_rfqs
 from routes import bp as api_bp
 
 load_dotenv()
+
+logging.basicConfig(
+    level=os.environ.get("LOG_LEVEL", "INFO"),
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 
 def create_app():
@@ -18,6 +26,17 @@ def create_app():
     @app.get("/")
     def index():
         return send_from_directory(app.static_folder, "index.html")
+
+    @app.errorhandler(HTTPException)
+    def handle_http_exception(e):
+        if (e.code or 500) >= 500:
+            logger.exception("HTTP %s on %s", e.code, request.path)
+        return jsonify({"error": e.name, "detail": e.description}), e.code or 500
+
+    @app.errorhandler(Exception)
+    def handle_unexpected(e):
+        logger.exception("unhandled exception on request")
+        return jsonify({"error": "internal server error", "detail": str(e)}), 500
 
     return app
 

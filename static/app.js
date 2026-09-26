@@ -92,6 +92,15 @@ function renderEvaluations(list) {
     .join("");
 }
 
+async function safeJson(res) {
+  const ct = (res.headers.get("content-type") || "").toLowerCase();
+  if (ct.includes("application/json")) {
+    return res.json();
+  }
+  const text = await res.text();
+  return { error: "non-JSON response", detail: text.slice(0, 200) };
+}
+
 async function loadRfqs() {
   try {
     const res = await fetch("/api/rfqs");
@@ -135,9 +144,9 @@ async function submitEvaluation() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ rfq_id: rfqId, vendor_text: vendorText }),
     });
-    const data = await res.json();
+    const data = await safeJson(res);
     if (!res.ok) {
-      setStatus("");
+      setStatus(res.status === 502 ? "Evaluation failed, try again." : "Failed.", "error");
       renderResult(data);
     } else {
       setStatus("Done.", "ok");
@@ -145,7 +154,7 @@ async function submitEvaluation() {
       await loadEvaluations();
     }
   } catch (err) {
-    setStatus("");
+    setStatus("Network error.", "error");
     renderResult({ error: "network error", detail: String(err) });
   } finally {
     updateSubmitState();

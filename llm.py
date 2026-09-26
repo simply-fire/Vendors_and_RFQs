@@ -110,12 +110,20 @@ TOOL_SCHEMA = {
 
 
 class LLMSchemaError(Exception):
-    """LLM failed to produce a usable evaluation (HTTP error, bad shape, or
-    schema validation that did not pass after one retry)."""
+    """LLM failed to produce a usable evaluation result.
+
+    Raised after one retry on shape/schema failures, or immediately on
+    transport failures (which we deliberately do not retry).
+    """
 
 
-class _CallError(Exception):
-    """Internal: transport or response-parsing failure from OpenRouter."""
+class _TransportError(Exception):
+    """HTTP / network / timeout from OpenRouter. Not retried."""
+
+
+class _ShapeError(Exception):
+    """LLM returned 200 but the response is not a usable tool call. Retried
+    once (same call) per the project's 'one retry on bad LLM output' rule."""
 
 
 def _build_user_prompt(rfq, vendor_text):
@@ -177,27 +185,27 @@ def _call_openrouter(messages):
             payload = json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         detail = e.read().decode("utf-8", errors="replace")
-        raise _CallError(f"OpenRouter HTTP {e.code}: {detail[:200]}")
+        raise _TransportError(f"OpenRouter HTTP {e.code}: {detail[:200]}")
     except urllib.error.URLError as e:
-        raise _CallError(f"OpenRouter connection error: {e.reason}")
+        raise _TransportError(f"OpenRouter connection error: {e.reason}")
 
     try:
         message = payload["choices"][0]["message"]
         tool_calls = message.get("tool_calls") or []
     except (KeyError, IndexError, TypeError):
-        raise _CallError("unexpected response shape from OpenRouter")
+        raise _ShapeError("unexpected response shape from OpenRouter")
 
     if not tool_calls:
-        raise _CallError("no tool_calls in response")
+        raise _ShapeError("no tool_calls in response")
 
     args_str = tool_calls[0].get("function", {}).get("arguments")
     if not args_str:
-        raise _CallError("no function arguments in tool_call")
+        raise _ShapeError("no function arguments in tool_call")
 
     try:
         return json.loads(args_str)
     except json.JSONDecodeError as e:
-        raise _CallError(f"function arguments not valid JSON: {e}")
+        raise _ShapeError(f"function arguments not valid JSON: {e}")
 
 
 def _validate(result):
@@ -257,23 +265,23 @@ def evaluate_with_llm(rfq, vendor_text):
         {"role": "user", "content": user_prompt},
     ]
 
-    last_err = None
+    last_err = "unknown"
 
     for attempt in (1, 2):
         try:
             result = _call_openrouter(messages)
-        except _CallError as e:
-            raise LLMSchemaError(f"LLM call failed: {e}") from e
+        except _TransportError as e:
+            raise LLMSchemaError(f"LLM transport failed: {e}") from e
+        except _ShapeError as e:
+            last_err = f"response shape invalid: {e}"
+            logger.warning("LLM shape error (attempt %d): %s", attempt, e)
+            continue
 
         err = _validate(result)
         if err is None:
             return result
 
         last_err = err
-        if attempt == 1:
-            logger.warning(
-                "LLM schema validation failed (attempt 1): %s — retrying once",
-                err,
-            )
+        logger.warning("LLM schema validation failed (attempt %d): %s", attempt, err)
 
-    raise LLMSchemaError(f"schema validation failed after retry: {last_err}")
+    raise LLMSchemaError(f"LLM did not return a valid evaluation: {last_err}")
