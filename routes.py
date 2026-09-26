@@ -1,7 +1,12 @@
 from flask import Blueprint, jsonify, request
 
 from db import rfq_exists
-from services import evaluate_vendor, list_evaluations, list_rfqs
+from services import (
+    EvaluationFailed,
+    evaluate_vendor,
+    list_evaluations,
+    list_rfqs,
+)
 
 bp = Blueprint("api", __name__, url_prefix="/api")
 
@@ -31,7 +36,12 @@ def post_evaluate():
     if not rfq_exists(rfq_id):
         return jsonify({"error": f"unknown rfq_id: {rfq_id}"}), 400
 
-    return jsonify(evaluate_vendor(rfq_id, vendor_text))
+    try:
+        result = evaluate_vendor(rfq_id, vendor_text)
+    except EvaluationFailed as e:
+        return jsonify({"error": "evaluation failed", "detail": str(e)}), 502
+
+    return jsonify(result)
 
 
 @bp.get("/evaluations")

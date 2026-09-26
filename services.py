@@ -1,9 +1,14 @@
 from db import (
-    fetch_rfqs,
     fetch_evaluations,
+    fetch_rfq,
+    fetch_rfqs,
     insert_evaluation,
-    rfq_exists,
 )
+from llm import LLMSchemaError, evaluate_with_llm
+
+
+class EvaluationFailed(Exception):
+    """Raised when the LLM cannot produce a valid evaluation result."""
 
 
 def list_rfqs():
@@ -15,25 +20,26 @@ def list_evaluations():
 
 
 def evaluate_vendor(rfq_id, vendor_text):
-    if not rfq_exists(rfq_id):
+    rfq = fetch_rfq(rfq_id)
+    if rfq is None:
         raise ValueError(f"unknown rfq_id: {rfq_id}")
 
-    score = 75
-    reasons = [
-        "Vendor states relevant certification (stub)",
-        "Stated capacity appears aligned with RFQ quantity (stub)",
-        "Delivery lead time fits the requested window (stub)",
-    ]
-    gaps = [
-        "No evidence of preferred capability (stub)",
-        "Traceability documentation not specified (stub)",
-    ]
+    try:
+        result = evaluate_with_llm(rfq, vendor_text)
+    except LLMSchemaError as e:
+        raise EvaluationFailed(str(e)) from e
 
-    eval_id = insert_evaluation(rfq_id, vendor_text, score, reasons, gaps)
+    eval_id = insert_evaluation(
+        rfq_id=rfq_id,
+        vendor_text=vendor_text,
+        score=result["score"],
+        reasons=result["reasons"],
+        gaps=result["gaps"],
+    )
     return {
         "id": eval_id,
         "rfq_id": rfq_id,
-        "score": score,
-        "reasons": reasons,
-        "gaps": gaps,
+        "score": result["score"],
+        "reasons": result["reasons"],
+        "gaps": result["gaps"],
     }

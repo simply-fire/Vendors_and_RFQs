@@ -109,6 +109,29 @@ def fetch_rfqs():
         conn.close()
 
 
+def fetch_rfq(rfq_id):
+    conn = get_connection()
+    try:
+        row = conn.execute("SELECT * FROM rfqs WHERE id = ?", (rfq_id,)).fetchone()
+        if row is None:
+            return None
+        return {
+            "id": row["id"],
+            "title": row["title"],
+            "category": row["category"],
+            "quantity": row["quantity"],
+            "material": row["material"],
+            "delivery": row["delivery"],
+            "technical": json.loads(row["technical"]),
+            "mandatory": json.loads(row["mandatory"]),
+            "required": json.loads(row["required"]),
+            "preferred": json.loads(row["preferred"]),
+            "raw_json": json.loads(row["raw_json"]),
+        }
+    finally:
+        conn.close()
+
+
 def insert_evaluation(rfq_id, vendor_text, score, reasons, gaps):
     conn = get_connection()
     try:
