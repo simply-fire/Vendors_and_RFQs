@@ -52,12 +52,18 @@ Open `http://127.0.0.1:5000/` in a browser.
 
 ## Seed data
 
-The three RFQs in `seed/rfqs.json` are loaded **automatically the first time
-the app starts**. On startup `app.py` calls `init_db()` (creates tables if
-missing) then `seed_rfqs()` (inserts RFQs from `seed/rfqs.json` only if the
-`rfqs` table is empty). Re-running the app is safe — it never duplicates rows.
+On every startup `app.py` calls `init_db()` (creates tables if missing) then
+`seed_rfqs()`, which **upserts** every RFQ from `seed/rfqs.json` into the
+`rfqs` table. That means:
 
-To force a re-seed, delete `app.db` and run again.
+- Adding a new RFQ to the JSON → appears in the dropdown after the next
+  server restart.
+- Editing an existing RFQ in the JSON → updated values appear after the
+  next server restart.
+- Removing an RFQ from the JSON → that row stays in the database as an
+  orphan; delete `app.db` if you want it gone.
+- The operation is idempotent — re-running the app with an unchanged JSON
+  is a no-op.
 
 ## Environment variables
 

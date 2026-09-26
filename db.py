@@ -49,12 +49,12 @@ def init_db():
 
 
 def seed_rfqs():
+    """Upsert every RFQ from the seed file. Runs on every startup so that
+    additions or edits to seed/rfqs.json are picked up on server restart.
+    Idempotent: same JSON -> same DB state. Rows whose ids are removed from
+    the JSON are left in place; delete app.db to clear them."""
     conn = get_connection()
     try:
-        existing = conn.execute("SELECT COUNT(*) FROM rfqs").fetchone()[0]
-        if existing > 0:
-            return False
-
         with open(SEED_PATH, "r", encoding="utf-8") as f:
             rfqs = json.load(f)
 
@@ -80,6 +80,17 @@ def seed_rfqs():
                 id, title, category, quantity, material, delivery,
                 technical, mandatory, required, preferred, raw_json
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                title     = excluded.title,
+                category  = excluded.category,
+                quantity  = excluded.quantity,
+                material  = excluded.material,
+                delivery  = excluded.delivery,
+                technical = excluded.technical,
+                mandatory = excluded.mandatory,
+                required  = excluded.required,
+                preferred = excluded.preferred,
+                raw_json  = excluded.raw_json
             """,
             rows,
         )
