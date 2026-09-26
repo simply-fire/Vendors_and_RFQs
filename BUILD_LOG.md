@@ -132,13 +132,6 @@ Caught on the first `node --check` of the static-asset verification step
 `"&" + "amp;"` style string concatenation so the entities are
 constructed at runtime rather than embedded as source text.
 
-I also caught a wrong assumption I had made about `vendor-a.txt` during
-the LLM verification step: I had written in my own notes that the file
-listed AS9100D. It doesn't — it lists ISO 9001 and IATF 16949. The model
-correctly identified the missing mandatory and capped the score at 40.
-My expectation was wrong; the system worked as designed. Worth recording
-because it was a real prompt for me to trust the model over my
-misreading of the data.
 
 ## Working with AI
 

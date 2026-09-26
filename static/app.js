@@ -18,7 +18,6 @@ const escape = (s) =>
     : c === '"' ? "&" + "quot;"
     : "&" + "#39;"
   );
-
 const dimBadge = (d) =>
   `<span class="dim">${escape(d)}</span>`;
 

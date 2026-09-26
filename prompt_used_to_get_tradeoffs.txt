@@ -1,0 +1,45 @@
+I want you to create a detailed implementation plan for this prototype based strictly on the provided specification.
+Before proposing the implementation plan, analyze the important engineering decisions and tradeoffs involved. I don't want you to jump straight into a stack or architecture. For each meaningful decision, give me the viable options, their pros and cons, and explain what we gain or give up with each option.
+In particular, evaluate tradeoffs around:
+
+Frontend and backend stack
+Database choice
+LLM provider/API approach
+Whether an agent framework is actually justified vs. direct LLM API calls
+Application architecture and separation of concerns
+How to structure the scoring/evaluation logic so the score is meaningful and defensible
+Input handling and RFQ/vendor-profile representation
+LLM output structure and validation
+Error handling and edge cases worth covering within the timebox
+What should and should not be included in the MVP
+Anything that could make the implementation unnecessarily complex for this exercise
+Keep the constraints of the assignment front and center. This is a 1.5–2 hour prototype, so optimize for a clean, understandable, working implementation rather than production-scale infrastructure or unnecessary abstractions. The specification explicitly says not to polish and that approach and clarity matter more than features.
+Also respect the stated constraints and out-of-scope items. In particular, do not recommend adding RAG, vector databases, multi-agent orchestration, vendor-to-vendor ranking, CI/CD, authentication, or unnecessary infrastructure unless you identify a specific reason to challenge the specification.
+Decision process
+For every major architectural or implementation decision:
+
+State the decision that needs to be made.
+List the realistic options.
+Give concise pros and cons for each.
+Explain the relevant tradeoffs in the context of THIS assignment.
+Give your recommendation, but do not lock it in yet.
+Clearly state what decision you need from me, if there is a meaningful choice.
+I want to make the final technology and feature decisions myself, so do not silently choose between meaningful alternatives.
+Then design the implementation plan
+Once we've discussed and settled the important decisions, create the implementation plan around exactly 5 meaningful commits.
+The commits should represent meaningful increments of functionality, not arbitrary file/grouping changes. The assignment requires at least five meaningful commits, with commit messages describing intent rather than mechanics.
+For each of the 5 commits, specify:
+
+Commit number and purpose
+Functionality being added
+Files/modules likely to be created or modified
+Important implementation details
+What should be manually verified after the commit
+What the application should be capable of doing at that point
+Suggested commit message
+The final 5-commit progression should take the project from an empty repository to a complete submission-ready prototype.
+Important
+Do not start writing implementation code yet.
+First, give me the decision analysis and options. Let me choose between the meaningful alternatives. Then, based on my decisions, produce the final 5-commit implementation plan.
+Also keep the required deliverables in mind throughout the plan: working public GitHub repository, README, BUILD_LOG.md, meaningful commit history, environment-based secrets, and documented/automatic seed-data loading.
+Finally, make the plan compatible with the BUILD_LOG requirements. The build log needs to capture the stack and rationale, scoring approach, what was built/skipped, unclear parts of the spec and assumptions, things that broke, how AI was used, the weakest part of the code, and what would be changed with another 48 hours.
