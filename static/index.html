@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vendor RFQ Evaluator</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main>
+    <h1>Vendor RFQ Evaluator</h1>
+
+    <section id="evaluate">
+      <h2>Evaluate a vendor</h2>
+
+      <label>
+        RFQ
+        <select id="rfq">
+          <option value="">Loading…</option>
+        </select>
+      </label>
+
+      <label>
+        Vendor profile
+        <textarea id="vendor" rows="10"
+          placeholder="Paste the vendor profile text here."></textarea>
+      </label>
+
+      <label>
+        Or upload a .txt file
+        <input type="file" id="file" accept=".txt,text/plain">
+      </label>
+
+      <div class="row">
+        <button id="submit" disabled>Evaluate</button>
+        <span id="status" aria-live="polite"></span>
+      </div>
+
+      <div id="result" aria-live="polite"></div>
+    </section>
+
+    <section id="history">
+      <h2>Past evaluations</h2>
+      <ul id="evaluations" class="eval-list">
+        <li class="empty">Loading…</li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
