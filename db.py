@@ -19,6 +19,17 @@ CREATE TABLE IF NOT EXISTS rfqs (
     preferred TEXT NOT NULL,
     raw_json  TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS evaluations (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    rfq_id      TEXT NOT NULL,
+    vendor_text TEXT NOT NULL,
+    score       INTEGER NOT NULL,
+    reasons     TEXT NOT NULL,
+    gaps        TEXT NOT NULL,
+    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (rfq_id) REFERENCES rfqs(id)
+);
 """
 
 
@@ -74,5 +85,73 @@ def seed_rfqs():
         )
         conn.commit()
         return True
+    finally:
+        conn.close()
+
+
+def rfq_exists(rfq_id):
+    conn = get_connection()
+    try:
+        row = conn.execute("SELECT 1 FROM rfqs WHERE id = ?", (rfq_id,)).fetchone()
+        return row is not None
+    finally:
+        conn.close()
+
+
+def fetch_rfqs():
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            "SELECT id, title FROM rfqs ORDER BY id"
+        ).fetchall()
+        return [{"id": r["id"], "title": r["title"]} for r in rows]
+    finally:
+        conn.close()
+
+
+def insert_evaluation(rfq_id, vendor_text, score, reasons, gaps):
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            """
+            INSERT INTO evaluations (rfq_id, vendor_text, score, reasons, gaps)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                rfq_id,
+                vendor_text,
+                score,
+                json.dumps(reasons),
+                json.dumps(gaps),
+            ),
+        )
+        conn.commit()
+        return cur.lastrowid
+    finally:
+        conn.close()
+
+
+def fetch_evaluations():
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            """
+            SELECT id, rfq_id, vendor_text, score, reasons, gaps, created_at
+            FROM evaluations
+            ORDER BY id DESC
+            """
+        ).fetchall()
+        return [
+            {
+                "id": r["id"],
+                "rfq_id": r["rfq_id"],
+                "vendor_text": r["vendor_text"],
+                "score": r["score"],
+                "reasons": json.loads(r["reasons"]),
+                "gaps": json.loads(r["gaps"]),
+                "created_at": r["created_at"],
+            }
+            for r in rows
+        ]
     finally:
         conn.close()
