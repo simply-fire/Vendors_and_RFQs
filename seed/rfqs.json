@@ -74,5 +74,31 @@
       "Prior supply to space or defence programmes",
       "Consignment stocking arrangement"
     ]
+  },
+  {
+    "id": "RFQ-005",
+    "title": "Non-Destructive Testing, Aerospace Components",
+    "category": "Inspection / NDT",
+    "quantity": "Up to 300 components per month",
+    "material": "Aluminium and titanium aerospace components",
+    "delivery": "5 working days turnaround",
+    "technical": [
+      "Dye penetrant inspection per ASTM E1417",
+      "Magnetic particle inspection per ASTM E1444 where applicable",
+      "Digital inspection reports with component traceability"
+    ],
+    "mandatory": [
+      "NADCAP accreditation for NDT"
+    ],
+    "required": [
+      "Qualified Level II or Level III NDT personnel",
+      "Inspection reports linked to component serial numbers",
+      "Calibration certificates for inspection equipment"
+    ],
+    "preferred": [
+      "Experience with aerospace structural components",
+      "On-site inspection capability",
+      "Prior work with space or defence programmes"
+    ]
   }
 ]
